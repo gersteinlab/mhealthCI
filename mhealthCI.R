@@ -1,10 +1,12 @@
+#!/usr/bin/env Rscript
+
 rm(list=ls())
-library(CausalImpact,verbose=F)
-library(tidyverse,verbose=F)
-library(lubridate,verbose=F)
-library(data.table,verbose=F)
-library(reshape2,verbose=F)
-library(optparse,verbose=F)
+suppressMessages(library(CausalImpact,verbose=F,quietly=F))
+suppressMessages(library(tidyverse,verbose=F,quietly=F))
+suppressMessages(library(lubridate,verbose=F,quietly=F))
+suppressMessages(library(data.table,verbose=F,quietly=F))
+suppressMessages(library(reshape2,verbose=F,quietly=F))
+suppressMessages(library(optparse,verbose=F,quietly=F))
 
 ####################### REPLACE NA VALUES FUNCTIONS ##################################
 
