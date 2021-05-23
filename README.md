@@ -45,22 +45,13 @@ Execute this command in the terminal:
 Rscript mhealthCI.R -f AwairData.csv -i 5 -s "2018-07-14 15:00:00" -e "2018-08-14 11:35:00" -n "2018-07-22 17:00:00" -v CarbonDioxide
 ```
 
-The results should be in the directory you are currenly in. 
+The results should be in the directory you are currenly in.
 
 ### Diabetes Data 
 
 We will now demonstrate a walkthrough for one of the diabetes patients, MED007. This will be a detailed step-by-step walkthrough of how to use mhealthCI. 
 
-First, we must download the required software in our R enviroment: "CausalImpact", "tidyverse", "lubridate", "data.table", "reshape2", "optparse". An example of how to do this in R: `install.packages("CasualImpact")`. You can confirm that these packages have downloaded by running: `library(CasualImpact)`.
-
-The console should look something similar to this: 
-```
-library(CausalImpact)
-Loading required package: bsts
-Loading required package: BoomSpikeSlab
-Loading required package: Boom
-Loading required package: MASS
-```
+First, we must download the required software in our R enviroment: "CausalImpact", "tidyverse", "lubridate", "data.table", "reshape2", "optparse". An example of how to do this in R: `install.packages("CasualImpact")`. You can confirm that these packages have downloaded by running: `library(CasualImpact)`. This is the same processes as the previous example. You should not have to download the software twice. 
 
 Now, set the working directory to where the output should be placed. We will be running this data on the MED07 patient data. If you need this data, it will be avaliable in the github repository for download. 
 
