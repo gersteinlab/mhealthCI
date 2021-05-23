@@ -23,11 +23,9 @@ The `-n` flag or `--interventiondate` is the intevervention date of the expireme
 The `-d` flag or `--diabetes` is the flag that requests specical processesing for diabetes specific data. Essentially the daibetes data is processed in terms of in target range, above target range, or below target range. Therefore, there are three options with this flag: lower, target, upper. The usage for this flag is as follows: `-d upper` |  `-d lower` |  `-d target`. If you want to process the data normally, leave this flag empty. 
 
 
-## Walkthrough
+## Dependencies
 
-### Awair Data 
-
-The awair dataset is a dataset that is attempting to understand the impact of lunchtime on carbon dixiode. First, we must download the required software in our R enviroment: "CausalImpact", "tidyverse", "lubridate", "data.table", "reshape2", "optparse". An example of how to do this in R: `install.packages("CasualImpact")`. You can confirm that these packages have downloaded by running: `library(CasualImpact)`.
+The script utilizes multiple libraries in R in order to complete the impact anaylsis. Therefore, we must download the required sofwtare in our R enviroment: "CausalImpact", "tidyverse", "lubridate", "data.table", "reshape2", "optparse". An example of how to do this in R: `install.packages("CasualImpact")`. You can confirm that these packages have downloaded by running: `library(CasualImpact)`.
 
 The console should look something similar to this: 
 ```
@@ -38,40 +36,105 @@ Loading required package: Boom
 Loading required package: MASS
 ```
 
-Now, set the working directory to where the output should be placed. We will be running this script on the Awair  data. If you need this data, it will be avaliable in the github repository for download. 
+Once this is complete, the script should have the required packages to run. 
+
+## Walkthrough
+
+This will be a detailed step-by-step walkthrough of how to use mhealthCI for multiple examples, using the different flags. 
+
+### Awair Data 
+
+The Awair dataset is understanding the impact of arriving to work on carbon dioxide emmissions. Therefore we will understand the impact on one date: 2018-07-18. We will set the intervention at 4:30 AM as that is when individuals start to arrive to work. 
 
 Execute this command in the terminal: 
 ```
-Rscript mhealthCI.R -f AwairData.csv -i 5 -s "2018-07-14 15:00:00" -e "2018-08-14 11:35:00" -n "2018-07-22 17:00:00" -v CarbonDioxide
+Rscript mhealthCI.R -f AwairData.csv -i 5 -s "2018-07-18 00:00:00" -e "2018-07-18 23:55:00" -n "2018-07-18 04:30:00" -v CarbonDioxide
 ```
 
-The results should be in the directory you are currenly in.
+The results should resemble this: 
+
+```
+[1] "ALIGNING AND CLEANING DATA..."
+[1] "ANALYZING CAUSAL IMPACT..."
+=-=-=-=-= Iteration 0 Sun May 23 11:50:55 2021 =-=-=-=-=
+=-=-=-=-= Iteration 100 Sun May 23 11:50:55 2021 =-=-=-=-=
+=-=-=-=-= Iteration 200 Sun May 23 11:50:55 2021 =-=-=-=-=
+=-=-=-=-= Iteration 300 Sun May 23 11:50:56 2021 =-=-=-=-=
+=-=-=-=-= Iteration 400 Sun May 23 11:50:56 2021 =-=-=-=-=
+=-=-=-=-= Iteration 500 Sun May 23 11:50:56 2021 =-=-=-=-=
+=-=-=-=-= Iteration 600 Sun May 23 11:50:56 2021 =-=-=-=-=
+=-=-=-=-= Iteration 700 Sun May 23 11:50:56 2021 =-=-=-=-=
+=-=-=-=-= Iteration 800 Sun May 23 11:50:57 2021 =-=-=-=-=
+=-=-=-=-= Iteration 900 Sun May 23 11:50:57 2021 =-=-=-=-=
+[1] "SAVING ANALYSIS RESULTS TO DIRECTORY"
+[1] "p-value: 0.0161104718066743"
+```
+
+There may be slight variations in the p-value due to the markov chain that is implemeneted in the function, however, this data should be satistically significant. The results figure and summary should be in the current working directory. 
+
 
 ### Diabetes Data 
 
-We will now demonstrate a walkthrough for one of the diabetes patients, MED007. This will be a detailed step-by-step walkthrough of how to use mhealthCI. 
+#### Patient 1: MED07
 
-First, we must download the required software in our R enviroment: "CausalImpact", "tidyverse", "lubridate", "data.table", "reshape2", "optparse". An example of how to do this in R: `install.packages("CasualImpact")`. You can confirm that these packages have downloaded by running: `library(CasualImpact)`. This is the same processes as the previous example. You should not have to download the software twice. 
+We will now demonstrate a walkthrough for one of the diabetes patients, MED007. 
 
-Now, set the working directory to where the output should be placed. We will be running this data on the MED07 patient data. If you need this data, it will be avaliable in the github repository for download. 
+The study was over a 12-week period in which we train the model for the first two weeks and predict the remaning 10 weeks. We are attempting to understand the impact of excersise on blood glucose values. We will be running this data on the MED07 patient data. If you need this data, it will be avaliable in the github repository for download. 
 
 Execute this command in the terminal: 
 ```
-Rscript mhealthCI.R -f MED07_Data.csv -i 5 -s 2020-01-03 00:00:00 -e 2020-03-21 00:00:00 -n 2020-01-17 00:00:00 -v Glucose -d target
+Rscript mhealthCI.R -f MED007_Data.csv -i 5 -s "2020-01-03 00:00:00" -e "2020-03-21 00:00:00" -n "2020-01-17 00:00:00" -v Glucose -d target
 ```
 
-There should be a figure named: "CasualImpact.pdf", a summary text named, "CasualImpactSummary.txt", and the console should print the p-value. 
+There should be a figure named: "CasualImpact.pdf", a summary text named, "CasualImpactSummary.txt", and the console should print the p-value. The results should look similar to this below: 
 
-You can also execute the command without the diabetes formatting: 
 ```
-Rscript mheathCI.R -f MED07_DATA.csv -i 5 -s 2020-01-03 00:00:00 -e 2020-03-21 00:00:00 -n 2020-01-17 00:00:00 -v Glucose
+[1] "ALIGNING AND CLEANING DATA..."
+Warning message:
+In align_data_function(combined.data, date1, date2, interval, vars) :
+  NAs introduced by coercion
+[1] "ANALYZING CAUSAL IMPACT..."
+=-=-=-=-= Iteration 0 Sun May 23 11:59:27 2021 =-=-=-=-=
+=-=-=-=-= Iteration 100 Sun May 23 11:59:27 2021 =-=-=-=-=
+=-=-=-=-= Iteration 200 Sun May 23 11:59:27 2021 =-=-=-=-=
+=-=-=-=-= Iteration 300 Sun May 23 11:59:27 2021 =-=-=-=-=
+=-=-=-=-= Iteration 400 Sun May 23 11:59:27 2021 =-=-=-=-=
+=-=-=-=-= Iteration 500 Sun May 23 11:59:27 2021 =-=-=-=-=
+=-=-=-=-= Iteration 600 Sun May 23 11:59:27 2021 =-=-=-=-=
+=-=-=-=-= Iteration 700 Sun May 23 11:59:27 2021 =-=-=-=-=
+=-=-=-=-= Iteration 800 Sun May 23 11:59:28 2021 =-=-=-=-=
+=-=-=-=-= Iteration 900 Sun May 23 11:59:28 2021 =-=-=-=-=
+[1] "SAVING ANALYSIS RESULTS TO DIRECTORY"
+[1] "p-value: 0.0648769574944072"
 ```
-#### Other Diabetes Data
+The p-value may be slighly different due to the aformentioned explination regarding markov chains. 
 
-We also have another patient, MED14, which we can also run. The data is also avaliable in the repository. To process this data execute the following command: 
+#### Patient 2: MED 14
+
+We also have another patient from the same study, MED14, which we can also run. The data is also avaliable in the repository. To process this data execute the following command: 
 ```
-Rscript mheathCI.R -f MED14_DATA.csv -i 5 -s 2020-01-03 00:00:00 -e 2020-03-21 00:00:00 -n 2020-01-17 00:00:00 -v Glucose -d target
+Rscript mheathCI.R -f MED014_DATA.csv -i 5 -s "2020-01-03 00:00:00" -e "2020-03-21 00:00:00" -n "2020-01-17 00:00:00" -v Glucose -d target
 ```
+
+The results should be similar to this: 
+```
+[1] "ALIGNING AND CLEANING DATA..."
+[1] "ANALYZING CAUSAL IMPACT..."
+=-=-=-=-= Iteration 0 Sun May 23 12:02:22 2021 =-=-=-=-=
+=-=-=-=-= Iteration 100 Sun May 23 12:02:22 2021 =-=-=-=-=
+=-=-=-=-= Iteration 200 Sun May 23 12:02:22 2021 =-=-=-=-=
+=-=-=-=-= Iteration 300 Sun May 23 12:02:22 2021 =-=-=-=-=
+=-=-=-=-= Iteration 400 Sun May 23 12:02:22 2021 =-=-=-=-=
+=-=-=-=-= Iteration 500 Sun May 23 12:02:22 2021 =-=-=-=-=
+=-=-=-=-= Iteration 600 Sun May 23 12:02:22 2021 =-=-=-=-=
+=-=-=-=-= Iteration 700 Sun May 23 12:02:22 2021 =-=-=-=-=
+=-=-=-=-= Iteration 800 Sun May 23 12:02:23 2021 =-=-=-=-=
+=-=-=-=-= Iteration 900 Sun May 23 12:02:23 2021 =-=-=-=-=
+[1] "SAVING ANALYSIS RESULTS TO DIRECTORY"
+[1] "p-value: 0.0110441767068273"
+```
+
+The p-value may differ due to similar reasoning as above. 
 
  
  
