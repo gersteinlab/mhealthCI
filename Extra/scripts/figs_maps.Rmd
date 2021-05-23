@@ -1,0 +1,191 @@
+---
+title: "Untitled"
+author: "Dan Spakowicz and Rebecca Hoyd"
+date: "September 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(lubridate)
+library(ggmap)
+library(sp)
+library(tidyverse)
+library(dplyr)
+library(rgdal)
+library(maps)
+library(ggfortify)
+library(MASS)
+library(plotKML)
+library(scales)
+library(leaflet)
+library(mapview)
+ 
+set.seed(20171130)
+```
+
+# Load data
+```{r}
+neigh <- readOGR("../data/boundaries.geojson")
+# load("../scijournal_data/causal-effect_results.Rdata")
+load("../data/modeldf.Rdata")
+clickloc <- read.csv("../data/scf_neighborhoods.csv")
+crime <- read.csv("../data/crime_aggr_by_neigh_ym.csv", stringsAsFactors = FALSE)
+# crimeloc <- read.csv("../../../data/processed/crime_data/nh_crime_neigh_bg_gun.csv")
+
+```
+
+
+# Fig 4 maps
+
+```{r create df for plotting}
+# Convert neighborhood boundaries to agree with projection of scf points
+neigh <- spTransform(neigh, CRSargs(CRS("+proj=longlat")))
+fneigh <- fortify(neigh)
+
+# Get the centroid poistion of each neighbhorhood boundary
+label.loc <- getSpPPolygonsLabptSlots(neigh) %>% 
+  as.data.frame %>%
+  mutate(name = neigh$name)
+
+aggcrime <- crime %>%
+  filter(YearMonth > 201100 & YearMonth < 201200) %>%
+  group_by(mNeighborhood) %>%
+  summarise(allcrime = sum(Num.Crimes)) %>%
+  mutate(name = mNeighborhood)
+
+# Include the cluster of each neighborhood
+
+# clust <- mat.r %>% dist %>% hclust %>% cutree(., k = 3)
+# clust <- data.frame(neigh1 = names(clust),
+#                     cluster = clust) %>%
+#   mutate(neigh1 = str_to_title(neigh1)) %>%
+#   plyr::rename(c("neigh1" = "name"))
+
+
+# Retrieve p value for shading
+# median.eff <- apply(mat.r, 1, function(x) median(x, na.rm = TRUE)) %>%
+#   data.frame
+# names(median.eff) <- "median.effect" 
+# median.eff$name <- row.names(median.eff) %>%
+#   stringr::str_to_title()
+
+# Make a key to associate group ids with names 
+group.key <- data.frame(group = unique(fneigh$group),
+                        name = label.loc$name) 
+
+#Bind together for plotting
+
+out <- group.key %>%
+  # left_join(median.eff) %>%
+  right_join(fneigh) %>%
+  left_join(aggcrime)
+
+```
+
+```{r choose year to plot}
+clickloc2 <- clickloc %>%
+  filter(grepl("2011", created_at))
+```
+
+```{r fig4b map plotting}
+out <- out %>%
+  mutate(colid = ifelse(name == "Wooster Square/Mill River", 'b', 'a'))
+
+ggplot(out, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = fct_relevel(group, "10.1", after=20), color = colid, fill = allcrime)) +
+  geom_point(data = clickloc2, aes(x = lng, y = lat), 
+             alpha= .1, color = 'firebrick') +
+  theme_void() +
+  theme(legend.position = "none") +
+  scale_fill_gradient2(low = muted("red"), mid = "white",
+                       high = muted("green")) +
+  scale_color_manual(breaks = c('a','b'), values = c("white", "black")) +
+  coord_fixed() 
+  # ggsave("../figures/overlap-crime-scf.svg", height = 6, width = 8)+
+  # ggsave("../figures/overlap-crime-scf.png", height = 6, width = 8)
+
+
+```
+
+```{r}
+
+out <- out %>%
+  mutate(greyout = ifelse(name == "Wooster Square/Mill River"|name == "West River", name, "grey"))
+
+ggplot(out, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, color = "grey", fill = greyout)) +
+  theme_void() +
+  theme(legend.position = "none") +
+  scale_fill_manual(breaks = c("grey", "West River", "Wooster Square/Mill River"), 
+                    values = c("grey", "yellow", "darkgreen")) +
+  scale_color_manual(breaks = c("grey"), values = c("grey")) +
+  coord_fixed() 
+  # ggsave("../figures/highlight-pair.svg", height = 6, width = 8)+
+  # ggsave("../figures/highligh-pair.png", height = 6, width = 8)
+```
+
+# Fig 1 maps
+
+## Newhaven SeeClickFix
+```{r}
+# Choose categories of posts to include
+postcause <- c('Graffiti', 'Potholes', 'Street Lamp', 'Broken Windows /Glass' )
+clickloc3 <- clickloc2 %>%
+  # filter(grepl("2016", created_at)) %>%
+  filter(request_type.title %in% postcause)
+
+# Plot
+ggplot(out, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = "a"), color = "black", show.legend = FALSE) +
+  geom_point(data = clickloc3, aes(x = lng, y = lat, color = request_type.title), 
+             alpha= .5) +
+  scale_fill_manual(breaks = "a", values = "white") +
+  scale_color_discrete(name = "Subject") +
+   theme_void() +
+  theme(legend.position = "right") +
+    coord_fixed() +
+  ggsave("../figures/scf-meta-map.svg", height = 6, width = 8)+
+  ggsave("../figures/scf-meta-map.png", height = 6, width = 8)
+```
+
+## Morning Run
+
+```{r}
+mornrun <- readOGR("../scijournal_data/Morning_Run.gpx", layer = "track_points")
+
+track <- coordinates(mornrun)
+track <- Line(track)
+
+track <- list(Lines(track, ID = "Morning Run"))
+track <- SpatialLines(track)
+
+proj4string(track) <- proj4string(mornrun)
+```
+
+```{r}
+map <- leaflet() %>%
+  addTiles() %>%
+  addPolylines(data = track)
+
+```
+
+```{r}
+mapshot(map, file = "../figures/mornrun_leaflet.svg")
+```
+
+# Question - SCF overall activity over time?
+
+```{r}
+timscf <- clickloc %>%
+  mutate(year = substr(created_at, 1, 4)) %>%
+  group_by(year) %>%
+  tally()
+
+ggplot(timscf, aes(x = year, y = n, group = 1)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Year", y = "# SCf posts in Newhaven") +
+  ggsave("../figures/scf-use-over-time.png")
+```
