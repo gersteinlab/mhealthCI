@@ -75,11 +75,11 @@ Due to the nature of MCMC, slight variations in the p-value may occur.
 
 ### Diabetes Data 
 
-#### Patient 1: MED07
+#### Individual 1: MED07
 
-We will now demonstrate a walkthrough for one of the diabetes patients, MED007. 
+We will now demonstrate a walkthrough for one of the individuals with diabetes, MED007. 
 
-The study was over a 12-week period in which we train the model for the first two weeks and predict the remaning 10 weeks. We are attempting to understand the impact of excersise on blood glucose values. We will be running this data on the MED07 patient data. If you need this data, it will be avaliable in the github repository for download. 
+The study was over a 12-week period in which we train the model for the first two weeks and predict the remaning 10 weeks. We are attempting to understand the impact of excersise on blood glucose values. We will be running this data on the MED07 individual's data. If you need this data, it will be avaliable in the github repository for download. 
 
 Execute this command in the terminal: 
 ```
@@ -109,9 +109,9 @@ In align_data_function(combined.data, date1, date2, interval, vars) :
 ```
 Due to the nature of MCMC, slight variations in the p-value may occur.
 
-#### Patient 2: MED 14
+#### Individual 2: MED 14
 
-We also have another patient from the same study, MED14, which we can also run. The data is also avaliable in the repository. To process this data execute the following command: 
+We also have another individual from the same study, MED14, which we can also run. The data is also avaliable in the repository. To process this data execute the following command: 
 ```
 Rscript mheathCI.R -f MED014_DATA.csv -i 5 -s "2020-01-03 00:00:00" -e "2020-03-21 00:00:00" -n "2020-01-17 00:00:00" -v Glucose -d target
 ```
