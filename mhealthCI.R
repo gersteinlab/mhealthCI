@@ -1,10 +1,10 @@
 rm(list=ls())
-library(CausalImpact)
-library(tidyverse)
-library(lubridate)
-library(data.table)
-library(reshape2)
-library(optparse)
+library(CausalImpact,verbose=F)
+library(tidyverse,verbose=F)
+library(lubridate,verbose=F)
+library(data.table,verbose=F)
+library(reshape2,verbose=F)
+library(optparse,verbose=F)
 
 ####################### REPLACE NA VALUES FUNCTIONS ##################################
 
