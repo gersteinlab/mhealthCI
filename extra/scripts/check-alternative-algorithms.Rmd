@@ -1,0 +1,299 @@
+---
+title: "Alternative algorthms"
+author: "Rebecca Hoyd"
+date: "2/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(tseries)
+library(forecast)
+library(ggplot2)
+library(tidyr)
+```
+
+# Load data
+```{r}
+ideal_control <- read.csv("../data/scijournal_spin-hop_ideal-control.csv")
+ideal_control <- ideal_control %>%
+  mutate(relative_time = relative_time/1000) %>%
+  filter(relative_time <= 20)
+
+ideal_event <- read.csv("../data/scijournal_spin-hop_ideal-change.csv")
+ideal_event <- ideal_event %>%
+  mutate(relative_time = relative_time/1000) %>%
+  filter(relative_time <= 20)
+
+nohop <- read.csv("../data/scijournal_change_radius.csv")
+nohop <- nohop %>%
+  mutate(relative_time = relative_time/1000) %>%
+  filter(relative_time <= 20)
+```
+
+```{r data formatting}
+ideal_control_1 <- ideal_control %>%
+  mutate(x = round(relative_time, 1),
+         y = abs(relative_time - x))
+
+ideal_control_1 <- ideal_control_1 %>%
+  group_by(x) %>%
+  summarise(y = min(y)) %>%
+  left_join(ideal_control_1)
+
+ideal_event_1 <- ideal_event %>%
+  mutate(x = round(relative_time, 1),
+         y = abs(relative_time - x))
+
+ideal_event_1 <- ideal_event_1 %>%
+  group_by(x) %>%
+  summarise(y = min(y)) %>%
+  left_join(ideal_event_1)
+
+ideal_set <- ideal_control_1 %>%
+  mutate(lincont = LinearAccelerometerSensor) %>%
+  dplyr::select(x, lincont) %>%
+  left_join(ideal_event_1) %>%
+  dplyr::select(x, LinearAccelerometerSensor, lincont)
+
+period <- ideal_set$x <= 10.5
+table(period)
+pre.period.ideal <- c(1, 95)
+post.period.ideal <- c(96, 96+108)
+
+
+nohop <- nohop %>%
+  mutate(modfeed = ifelse(relative_time > 10, NA, LinearAccelerometerSensor))
+nohop.modfeed <- nohop$modfeed
+
+nohop.pre <- c(1,175)
+nohop.post <- c(176,349)
+```
+
+# ARIMAX
+
+```{r}
+pull.arima.model <- function(arima.input, obs.val, cov.ser = NULL, cov.test = NULL){
+  
+  # Get the modeling info, including and excluding covariate.
+  if(!is.null(cov.ser)){
+    fit.arima <- auto.arima(arima.input, xreg = cov.ser)
+    ts.forecasts<-forecast(fit.arima, h=length(obs.val), xreg = cov.test)
+  } else{
+    fit.arima <- auto.arima(arima.input)
+    ts.forecasts<-forecast(fit.arima, h=length(obs.val))
+  }
+  
+  low.confit <- ts.forecasts$lower[,2]
+  upper.confint <- ts.forecasts$upper[,2]
+  pred.val <- ts.forecasts$mean
+  
+  # Replicate CI plot, including and excluding covariate.
+  init.obs <- as.data.frame(cbind(t.ser = arima.input, obs.pred = "obs.val"), stringsAsFactors = F) %>%
+    mutate(x = row_number(),
+           t.ser = as.numeric(t.ser))
+
+  if(!is.null(cov.ser)){
+  control.ser <- as.data.frame(cbind(t.ser = c(cov.ser, cov.test),
+                                     obs.pred = "control"), stringsAsFactors = F) %>%
+    mutate(x = row_number(),
+           t.ser = as.numeric(t.ser))
+  
+  plot.res <- as.data.frame(cbind(low.confit, upper.confint, pred.val, obs.val)) %>%
+    mutate(x = row_number() + length(arima.input)) %>%
+    gather(pred.val, obs.val, key = "obs.pred", value = "t.ser") %>%
+    bind_rows(init.obs) %>%
+    bind_rows(control.ser) %>%
+    arrange(x)
+  
+  hold.confint <- as.data.frame(cbind(low.confit, upper.confint)) %>%
+    mutate(x = row_number() + length(arima.input)) %>%
+    arrange(x)
+  
+  plot.im <- plot.res %>%
+    ggplot(aes(x=x, y=t.ser))+
+    geom_path(aes(color = obs.pred)) +
+    geom_ribbon(data = hold.confint, inherit.aes = F,
+                aes(ymin = low.confit, ymax = upper.confint, alpha = .2, x = x), 
+                fill = "lightblue", show.legend = F) +
+    scale_color_manual(breaks = c("control", 'obs.val', 'pred.val'), labels = c("Control", "Observed", "Predicted"),
+                       values = c("grey30", "firebrick", "darkblue"), name ="Series") +
+    labs(title = "", x="", y = "") +
+    theme_bw() 
+  } else{
+  
+  plot.res <- as.data.frame(cbind(low.confit, upper.confint, pred.val, obs.val)) %>%
+    mutate(x = row_number() + length(arima.input)) %>%
+    gather(pred.val, obs.val, key = "obs.pred", value = "t.ser") %>%
+    bind_rows(init.obs) %>%
+    arrange(x)
+  
+  plot.im <- plot.res %>%
+    ggplot(aes(x=x, y=t.ser))+
+    geom_path(aes(color = obs.pred)) +
+    geom_ribbon(aes(ymin = low.confit, ymax = upper.confint, alpha = .2), fill = "lightblue", show.legend = F) +
+    scale_color_manual(breaks = c('obs.val', 'pred.val'), labels = c("Observed", "Predicted"),
+                       values = c("firebrick", "darkblue"), name ="Series") +
+    labs(title = "", x="", y = "") +
+    theme_bw() 
+  }
+  
+  # Save info on cumulative effect
+  
+  cml.pre <- cumsum(arima.input)
+  end.pre <- dplyr::last(cml.pre)
+  
+  cml.up <- c(cml.pre, cumsum(upper.confint) + end.pre)
+  cml.down <- c(cml.pre, cumsum(low.confit) + end.pre)
+  cml.pred <- c(cml.pre, cumsum(pred.val) + end.pre)
+  cml.obs <- c(cml.pre, cumsum(obs.val) + end.pre)
+  
+  cml.df <- as.data.frame(cbind(cml.up, cml.down, cml.pred, cml.obs)) %>%
+    mutate(cml.effect = cml.obs - cml.pred,
+           cml.effect.lower = cml.obs - cml.up,
+           cml.effect.upper = cml.obs - cml.down,
+           x = row_number())
+  
+  cml.plot <- cml.df %>%
+    ggplot(aes(x = x, y = cml.effect)) +
+    geom_path() +
+    geom_ribbon(aes(ymin = cml.effect.lower, ymax = cml.effect.upper), fill = "darkblue", alpha = 0.5) 
+  
+  outlist <- list(plot.res, plot.im, cml.df, cml.plot)
+  names(outlist) <- c("CI.plotinput", "CI.plot", "cml.df", "cml.plot")
+  return(outlist)
+  
+}
+```
+
+# No noise
+
+```{r}
+
+noiseless.arima <- pull.arima.model(nohop$LinearAccelerometerSensor[1:175], nohop$LinearAccelerometerSensor[176:349])
+
+noiseless.arima$CI.plot +
+  ggsave("../figures/ARIMA_no-noise.pdf")
+
+noiseless.arima$cml.plot  +
+  ggsave("../figures/cmlint_no-noise.pdf")
+```
+
+## Add noise
+
+```{r}
+addnoise.arima <- pull.arima.model(ideal_set$LinearAccelerometerSensor[1:95],
+                                   ideal_set$LinearAccelerometerSensor[96:203])
+
+addnoise.arima$CI.plot +
+  ggsave("../figures/ARIMA_add-noise.pdf")
+
+addnoise.arima$cml.plot +
+  ggsave("../figures/cmlint_add-noise.pdf")
+```
+
+## Account for noise
+
+```{r}
+accountnoise.arima <- pull.arima.model(ideal_set$LinearAccelerometerSensor[1:95],
+                                       ideal_set$LinearAccelerometerSensor[96:203],
+                                       ideal_set$lincont[1:95],
+                                       ideal_set$lincont[96:203])
+
+accountnoise.arima$CI.plot +
+  ggsave("../figures/ARIMA_account-noise.pdf")
+
+accountnoise.arima$cml.plot +
+  ggsave("../figures/cmlint_account-noise.pdf")
+```
+
+# Comparing sensitivity to CI
+
+```{r}
+cml.ari.nn <- noiseless.arima$cml.df
+cml.ari.an <- addnoise.arima$cml.df
+cml.ari.ac <- accountnoise.arima$cml.df
+
+cml.ci.nn <- read.csv("../data/CI-res_no-noise.csv", stringsAsFactors = F) %>%
+  filter(metric == "cumulative") %>%
+  rename("cml.effect" = "mean",
+         "cml.effect.lower" = "lower",
+         "cml.effect.upper" = "upper")
+cml.ci.an <- read.csv("../data/CI-res_add-noise.csv", stringsAsFactors = F) %>%
+  filter(metric == "cumulative") %>%
+  rename("cml.effect" = "mean",
+         "cml.effect.lower" = "lower",
+         "cml.effect.upper" = "upper")
+cml.ci.ac <- read.csv("../data/CI-res_account-noise.csv", stringsAsFactors = F) %>%
+  filter(metric == "cumulative") %>%
+  rename("cml.effect" = "mean",
+         "cml.effect.lower" = "lower",
+         "cml.effect.upper" = "upper")
+```
+
+```{r}
+percent_time_outside_zero <- function(cml.res, effect.scale){
+  cml.tmp <- cml.res %>%
+    filter(cml.effect != 0)
+  indiv.effects <- c(cml.tmp$cml.effect[1], diff(cml.tmp$cml.effect))
+  orig.cmlint.low <- cml.tmp$cml.effect-cml.tmp$cml.effect.upper
+  orig.cmlint.high <- cml.tmp$cml.effect - cml.tmp$cml.effect.lower
+  mean.effect <- mean(indiv.effects)
+  scaled.effect <- indiv.effects - mean.effect + (effect.scale * mean.effect)
+  scaled.effect.cml <- cumsum(scaled.effect)
+  cml.scaled <- as.data.frame(cbind(orig.cmlint.low, orig.cmlint.high, scaled.effect.cml), stringsAsFactors = F) %>%
+    mutate(scaled.lower = scaled.effect.cml - orig.cmlint.high,
+           scaled.upper = scaled.effect.cml - orig.cmlint.low) %>%
+    mutate(out0 = !(scaled.lower <= 0 & scaled.upper >= 0), 
+           x = row_number())
+  
+  percent.sig <- mean(cml.scaled$out0)
+  return(percent.sig)
+  
+}
+
+
+# Trying to get a good idea of how much we'd need to scale up/down the effects for the sigmoid plot to make sense
+check_effect_scales <- function(cml.res){
+  dist.to.0 <- dplyr::last(cml.res$cml.effect.upper)/(dplyr::last(cml.res$cml.effect.upper) - dplyr::last(cml.res$cml.effect))
+  
+  # dist.to.sig <- (dplyr::last(cml.res$cml.effect.upper) - dplyr::last(cml.res$cml.effect))/
+  #   dplyr::last(cml.res$cml.effect)
+  
+  return(dist.to.0)
+}
+
+```
+
+```{r}
+# all.modelling.res <- list(cml.ari.nn, cml.ari.an, cml.ari.ac,
+#                           cml.ci.nn, cml.ci.an, cml.ci.ac)
+# names(all.modelling.res) <- c("ARIMA.NoNoise", "ARIMA.AddNoise", "ARIMA.AddControl",
+#                               "CI.NoNoise", "CI.AddNoise", "CI.AddControl")
+# 
+# lapply(all.modelling.res, function(x) check_effect_scales(x))
+```
+
+
+```{r}
+scaleccheck <- c(seq(0,2,0.1), seq(3,10,.5))
+
+check.effect.scales <- lapply(all.modelling.res, function(x) lapply(scaleccheck, function(y) percent_time_outside_zero(x,y)))
+
+
+make.effect.df <- lapply(check.effect.scales, function(x) unlist(x)) %>%
+  bind_cols() %>%
+  mutate(scale = scaleccheck) %>%
+  gather(-scale, key = "Model", value = "percent.out0")
+```
+
+```{r}
+make.effect.df %>%
+  ggplot(aes(x = scale, y = percent.out0, color = Model)) +
+  stat_smooth(method = "loess") +
+  geom_vline(xintercept = 1, lty = 2) +
+  labs(x = "Effect multiplier", y = "% 0 outside confidence interval") +
+  ggsave("../figures/check-algorithm-sensitivity.pdf")
+```
