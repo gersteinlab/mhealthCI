@@ -42,7 +42,7 @@ Once this is complete, the script should have the required packages to run.
 
 This will be a detailed step-by-step walkthrough of how to use mhealthCI for multiple examples, using the different flags. 
 
-### Awair Data 
+### Environmental Sensor Data
 
 The Awair dataset is understanding the impact of arriving to work on carbon dioxide emmissions. Therefore we will understand the impact on one date: 2018-07-18. We will set the intervention at 4:30 AM as that is when individuals start to arrive to work. 
 
@@ -73,7 +73,7 @@ The results should resemble this:
 Due to the nature of MCMC, slight variations in the p-value may occur.
 
 
-### Diabetes Data 
+### Biomedical Sensor Data
 
 #### Individual 1: MED07
 
