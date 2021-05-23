@@ -10,7 +10,7 @@ Rscript mhealthCI.R -f <4 column data file> -i <time interval of data> -s <start
 
 mhealthCI requires a specific file format in order to process the data and run the casual impact anaylsis. The file must be a four column file with the following order: "Date", "Time", "Variable" , "Value". This file must have all of the covariates and each covariate and variable must the same time-length. The output of this script will then be a figure and a summary of the casual impact anaylsis. 
 
-The `-f` flag or `--file` is for the filename, which the file must adhere to the aformentioned criteria. 
+The `-f` flag or `--file` is for the path and filename, which the file must adhere to the aformentioned criteria. The given path is in relation to the script location.
 
 The `-i` flag or `--interval` will be the time interval in which the data must be aligned too. For example, 5 minutes. This allows for all of the data to be in the same time frame which is required for the anaylsis. 
 
