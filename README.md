@@ -48,7 +48,7 @@ The Awair dataset is understanding the impact of arriving to work on carbon diox
 
 Execute this command in the terminal: 
 ```
-Rscript mhealthCI.R -f AwairData.csv -i 5 -s "2018-07-18 00:00:00" -e "2018-07-18 23:55:00" -n "2018-07-18 04:30:00" -v CarbonDioxide
+Rscript mhealthCI.R -f ./Extra/data/AwairData.csv -i 5 -s "2018-07-18 00:00:00" -e "2018-07-18 23:55:00" -n "2018-07-18 04:30:00" -v CarbonDioxide
 ```
 
 The results should resemble this: 
@@ -83,7 +83,7 @@ The study was over a 12-week period in which we train the model for the first tw
 
 Execute this command in the terminal: 
 ```
-Rscript mhealthCI.R -f MED007_Data.csv -i 5 -s "2020-01-03 00:00:00" -e "2020-03-21 00:00:00" -n "2020-01-17 00:00:00" -v Glucose -d target
+Rscript mhealthCI.R -f ./Extra/data/MED007_Data.csv -i 5 -s "2020-01-03 00:00:00" -e "2020-03-21 00:00:00" -n "2020-01-17 00:00:00" -v Glucose -d target
 ```
 
 There should be a figure named: "CasualImpact.pdf", a summary text named, "CasualImpactSummary.txt", and the console should print the p-value. The results should look similar to this below: 
@@ -113,7 +113,7 @@ Due to the nature of MCMC, slight variations in the p-value may occur.
 
 We also have another individual from the same study, MED14, which we can also run. The data is also avaliable in the repository. To process this data execute the following command: 
 ```
-Rscript mhealthCI.R -f MED014_DATA.csv -i 5 -s "2020-01-03 00:00:00" -e "2020-03-21 00:00:00" -n "2020-01-17 00:00:00" -v Glucose -d target
+Rscript mhealthCI.R -f ./Extra/data/MED014_DATA.csv -i 5 -s "2020-01-03 00:00:00" -e "2020-03-21 00:00:00" -n "2020-01-17 00:00:00" -v Glucose -d target
 ```
 
 The results should be similar to this: 
