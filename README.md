@@ -70,7 +70,7 @@ The results should resemble this:
 [1] "p-value: 0.0161104718066743"
 ```
 
-There may be slight variations in the p-value due to the markov chain that is implemeneted in the function, however, this data should be satistically significant. The results figure and summary should be in the current working directory. 
+Due to the nature of MCMC, slight variations in the p-value may occur.
 
 
 ### Diabetes Data 
@@ -107,7 +107,7 @@ In align_data_function(combined.data, date1, date2, interval, vars) :
 [1] "SAVING ANALYSIS RESULTS TO DIRECTORY"
 [1] "p-value: 0.0648769574944072"
 ```
-The p-value may be slighly different due to the aformentioned explination regarding markov chains. 
+Due to the nature of MCMC, slight variations in the p-value may occur.
 
 #### Patient 2: MED 14
 
@@ -134,7 +134,7 @@ The results should be similar to this:
 [1] "p-value: 0.0110441767068273"
 ```
 
-The p-value may differ due to similar reasoning as above. 
+Due to the nature of MCMC, slight variations in the p-value may occur.
 
  
  
