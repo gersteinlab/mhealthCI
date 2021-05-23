@@ -47,9 +47,6 @@ Rscript mhealthCI.R -f MED07_Data.csv -i 5 -s 2020-01-03 00:00:00 -e 2020-03-21 
 
 There should be a figure named: "CasualImpact.pdf", a summary text named, "CasualImpactSummary.txt", and the console should print the p-value. 
 
-For this dataset, the p-value is ~0.061. 
-
-
 You can also execute the command without the diabetes formatting: 
 ```
 Rscript mheathCI.R -f MED07_DATA.csv -i 5 -s 2020-01-03 00:00:00 -e 2020-03-21 00:00:00 -n 2020-01-17 00:00:00 -v Glucose
