@@ -113,7 +113,7 @@ Due to the nature of MCMC, slight variations in the p-value may occur.
 
 We also have another individual from the same study, MED14, which we can also run. The data is also avaliable in the repository. To process this data execute the following command: 
 ```
-Rscript mheathCI.R -f MED014_DATA.csv -i 5 -s "2020-01-03 00:00:00" -e "2020-03-21 00:00:00" -n "2020-01-17 00:00:00" -v Glucose -d target
+Rscript mhealthCI.R -f MED014_DATA.csv -i 5 -s "2020-01-03 00:00:00" -e "2020-03-21 00:00:00" -n "2020-01-17 00:00:00" -v Glucose -d target
 ```
 
 The results should be similar to this: 
