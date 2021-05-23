@@ -14,11 +14,11 @@ The `-i` flag or `--file` is for the filename, which the file must adhere to the
 
 The `-i` flag or `--interval` will be the time interval in which the data must be aligned too. For example, 5 minutes. This allows for all of the data to be in the same time frame which is required for the anaylsis. 
 
-The `-s` flag or `--startexpr` is the start date and time of the experiment. This must be formatted in the following format: %YYYY-%MM-%DD %HH%MM%SS
+The `-s` flag or `--startexpr` is the start date and time of the experiment. This must be formatted in the following format: "%YYYY-%MM-%DD %HH%MM%SS"
 
-The `-e` flag or `--endexpr` is the end date and time of the experiment. This must be formatted in the following format: %YYYY-%MM-%DD %HH%MM%SS
+The `-e` flag or `--endexpr` is the end date and time of the experiment. This must be formatted in the following format: "%YYYY-%MM-%DD %HH%MM%SS"
 
-The `-n` flag or `--interventiondate` is the intevervention date of the expirement. This must be formatted in the following format: %YYYY-%MM-%DD %HH%MM%SS
+The `-n` flag or `--interventiondate` is the intevervention date of the expirement. This must be formatted in the following format: "%YYYY-%MM-%DD %HH%MM%SS"
 
 The `-d` flag or `--diabetes` is the flag that requests specical processesing for diabetes specific data. Essentially the daibetes data is processed in terms of in target range, above target range, or below target range. Therefore, there are three options with this flag: lower, target, upper. The usage for this flag is as follows: `-d upper` |  `-d lower` |  `-d target`. If you want to process the data normally, leave this flag empty. 
 
